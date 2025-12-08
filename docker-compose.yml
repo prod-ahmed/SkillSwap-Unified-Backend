@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: skillSwapTN
+    restart: always
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - mongo
+    environment:
+      # Inside Docker, "mongo" is the hostname of the MongoDB container
+      MONGO_URI: mongodb://mongo:27017/booknest
+      MONGO_ALT_URI: mongodb://mongo_alt:27017/booknest_alt
+      NODE_ENV: dev
+
+  mongo:
+    image: mongo:5
+    container_name: mongo
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+  mongo_alt:
+    image: mongo:5
+    container_name: mongo_alt
+    restart: always
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo-alt-data:/data/db
+
+volumes:
+  mongo-data:
+  mongo-alt-data:
