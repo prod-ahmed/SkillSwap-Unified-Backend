@@ -23,6 +23,13 @@
 
 ## Notifications / Sessions Actions
 - Existing REST remains. Reschedule/mark-read endpoints unchanged; clients may optimistically use `chat:read` for receipts.
+- Sessions:
+  - POST `/sessions/:id/reschedule-request` body `{ proposedDate: string, reason?: string }` → emits notification type `reschedule_request`.
+  - Subsequent status updates via PATCH `/sessions/:id` with `status` as today (unchanged).
+- Notifications payloads:
+  - Reschedule: `{ type: 'reschedule_request' | 'reschedule_accepted', sessionId, senderId, recipientId, proposedDate, reason?, createdAt }`
+  - Presence badges: clients may derive from `chat:presence` (no extra endpoint).
+  - Accessibility metadata: clients may attach `accessibility` object in API calls (ignored by backend if present) to keep contract backward-compatible.
 
 ## Auth / Accessibility
 - No breaking changes; login/register endpoints unchanged. Clients may attach accessibility metadata client-side (no backend changes required).
