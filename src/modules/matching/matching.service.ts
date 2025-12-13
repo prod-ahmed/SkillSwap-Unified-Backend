@@ -13,7 +13,10 @@ export class MatchingService {
 
   async recommendations(userId: string, query: RecommendationQuery) {
     const users = await this.usersService.findAll();
-    const filtered = users.filter((u) => u.id !== userId).filter((u) => {
+    const filtered = users.filter((u) => {
+      const id = (u as any)._id?.toString?.() ?? (u as any).id ?? '';
+      return id !== userId;
+    }).filter((u) => {
       if (query.city && u.location?.city?.toLowerCase() !== query.city.toLowerCase()) {
         return false;
       }
