@@ -76,6 +76,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = client.data.userId;
 
         this.logger.log(`📥 User ${userId} joining thread ${threadId}`);
+        
+        // Ensure client is in the room
         client.join(`thread:${threadId}`);
 
         client.emit('chat:joined', { threadId, timestamp: new Date().toISOString() });
@@ -120,7 +122,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
      */
     broadcastMessage(threadId: string, message: any) {
         this.logger.log(`📨 Broadcasting message to thread ${threadId}`);
+        
+        // Emit to the room "thread:{threadId}"
         this.server.to(`thread:${threadId}`).emit('message:new', message);
+        
         this.logger.log(`✅ Message broadcasted to thread:${threadId}`);
     }
 

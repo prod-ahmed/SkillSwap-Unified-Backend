@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Replicate from 'replicate';
 
 @Injectable()
 export class GeminiService {
   private model;
+  private replicate: Replicate;
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -16,6 +18,13 @@ export class GeminiService {
     this.model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash',
     });
+
+    const replicateToken = process.env.REPLICATE_API_TOKEN;
+    if (replicateToken) {
+      this.replicate = new Replicate({
+        auth: replicateToken,
+      });
+    }
   }
 
   async generateText(prompt: string): Promise<string> {
@@ -53,11 +62,30 @@ export class GeminiService {
         `Create a detailed, vivid image generation prompt for a marketing banner based on this description: "${prompt}". The prompt should describe style, lighting, and mood. Output ONLY the prompt text.`,
       );
 
-      // 2. Use Pollinations.ai for generation (free, no key required)
-      const encodedPrompt = encodeURIComponent(enhancedPrompt.trim());
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=512&nologo=true`;
+      // 2. Use Replicate if available, otherwise fallback or throw
+      if (!this.replicate) {
+         throw new Error('REPLICATE_API_TOKEN is not configured');
+      }
+
+      console.log('Generating image with Replicate for prompt:', enhancedPrompt);
       
-      return imageUrl;
+      const output = await this.replicate.run(
+        "black-forest-labs/flux-schnell",
+        {
+          input: {
+            prompt: enhancedPrompt,
+            aspect_ratio: "16:9",
+            output_format: "jpg"
+          }
+        }
+      );
+
+      // Replicate returns an array of output items (usually URLs or streams)
+      if (Array.isArray(output) && output.length > 0) {
+          return String(output[0]);
+      }
+      
+      return String(output);
     } catch (error) {
       console.error('Image generation failed:', error);
       throw new Error('Failed to generate image: ' + (error.message || error));
