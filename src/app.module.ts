@@ -16,6 +16,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { CallingModule } from './modules/calling/calling.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
+import { MatchingModule } from './modules/matching/matching.module';
 
 // Secondary Modules (New)
 import { GeminiModule } from './modules/gemini/gemini.module';
@@ -48,6 +49,7 @@ import { LessonPlanModule } from './modules/lesson-plan/lesson-plan.module';
         CallingModule,
         LocationsModule,
         ModerationModule,
+        MatchingModule,
 
         // New Features
         GeminiModule,

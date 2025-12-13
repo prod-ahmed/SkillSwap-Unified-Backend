@@ -19,6 +19,11 @@ interface TypingPayload {
     isTyping: boolean;
 }
 
+interface ReadPayload {
+    threadId: string;
+    messageIds?: string[];
+}
+
 @WebSocketGateway({
     cors: {
         origin: '*',
@@ -53,6 +58,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 socketId: client.id,
                 timestamp: new Date().toISOString(),
             });
+
+            // Broadcast presence
+            this.server.emit('chat:presence', {
+                userId,
+                status: 'online',
+                timestamp: new Date().toISOString(),
+            });
         } else {
             this.logger.warn(`⚠️ Client ${client.id} connected without userId`);
         }
@@ -64,6 +76,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (userId) {
             this.userSocketMap.delete(userId);
             this.logger.log(`❌ User ${userId} disconnected from chat`);
+            this.server.emit('chat:presence', {
+                userId,
+                status: 'offline',
+                timestamp: new Date().toISOString(),
+            });
         }
     }
 
@@ -113,6 +130,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             userId,
             threadId,
             isTyping,
+            timestamp: new Date().toISOString(),
+        });
+    }
+
+    @SubscribeMessage('chat:read')
+    handleRead(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: ReadPayload,
+    ) {
+        const { threadId, messageIds } = payload;
+        const userId = client.data.userId;
+        if (!threadId || !userId) {
+            return;
+        }
+        this.logger.log(`✅ Read receipt in thread ${threadId} by ${userId}`);
+        client.to(`thread:${threadId}`).emit('chat:read', {
+            threadId,
+            readerId: userId,
+            messageIds: messageIds ?? [],
             timestamp: new Date().toISOString(),
         });
     }
