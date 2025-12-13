@@ -173,6 +173,10 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         @ConnectedSocket() client: Socket,
         @MessageBody() payload: CallAnswerPayload,
     ) {
+        if (!payload?.callId || !payload?.sdp) {
+            client.emit('call:error', { message: 'Invalid answer payload' });
+            return;
+        }
         const call = this.callingService.getCall(payload.callId);
         if (!call) {
             client.emit('call:error', { message: 'Call not found' });
@@ -187,6 +191,8 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
             this.server.to(callerSocketId).emit('call:answered', {
                 callId: payload.callId,
                 sdp: payload.sdp,
+                senderId: client.data.userId,
+                recipientId: call.callerId,
             });
         }
     }
@@ -197,6 +203,10 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         @MessageBody() payload: IceCandidatePayload,
     ) {
         const userId = client.data.userId;
+        if (!payload?.callId || !payload.candidate) {
+            client.emit('call:error', { message: 'Invalid ice payload' });
+            return;
+        }
         const call = this.callingService.getCall(payload.callId);
 
         if (!call) {
@@ -211,6 +221,7 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
             this.server.to(otherSocketId).emit('call:ice-candidate', {
                 callId: payload.callId,
                 candidate: payload.candidate,
+                senderId: userId,
             });
         }
     }
@@ -228,7 +239,7 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         // Notify caller
         const callerSocketId = this.callingService.getSocketIdForUser(call.callerId);
         if (callerSocketId) {
-            this.server.to(callerSocketId).emit('call:rejected', { callId: payload.callId });
+            this.server.to(callerSocketId).emit('call:rejected', { callId: payload.callId, senderId: client.data.userId });
         }
 
         this.callingService.endCall(payload.callId);
@@ -251,7 +262,7 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         const otherSocketId = this.callingService.getSocketIdForUser(otherUserId);
 
         if (otherSocketId) {
-            this.server.to(otherSocketId).emit('call:ended', { callId: payload.callId });
+            this.server.to(otherSocketId).emit('call:ended', { callId: payload.callId, senderId: userId });
         }
 
         this.callingService.endCall(payload.callId);
@@ -270,7 +281,7 @@ export class CallingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         // Notify caller that recipient is busy
         const callerSocketId = this.callingService.getSocketIdForUser(call.callerId);
         if (callerSocketId) {
-            this.server.to(callerSocketId).emit('call:busy', { callId: payload.callId });
+            this.server.to(callerSocketId).emit('call:busy', { callId: payload.callId, senderId: client.data.userId });
         }
 
         this.callingService.endCall(payload.callId);

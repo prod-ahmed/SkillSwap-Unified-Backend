@@ -10,9 +10,10 @@
 - Handshake: `auth.userId` (existing behavior).
 - Events:
   - `call:incoming` (server → callee): `{ callId, callerId, callType: 'audio' | 'video', sdp }`
-  - `call:answer` / `call:answered`: `{ callId, threadId?, sdp }`
-  - `call:ice-candidate`: `{ callId, candidate, sdpMid?, sdpMLineIndex? }`
-  - `call:reject`, `call:end`, `call:busy`: `{ callId }`
+  - `call:answer` (client → server): `{ callId, sdp }`
+  - `call:answered` (server → caller): `{ callId, sdp, senderId, recipientId }`
+  - `call:ice-candidate`: `{ callId, candidate, sdpMid?, sdpMLineIndex?, senderId }`
+  - `call:reject`, `call:end`, `call:busy`: `{ callId, senderId }`
   - Errors: `call:error` (unchanged)
 
 ## Matching / Discovery
