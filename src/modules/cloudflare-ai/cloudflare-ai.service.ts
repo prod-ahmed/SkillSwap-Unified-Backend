@@ -14,8 +14,8 @@ interface CloudflareAIResponse {
 @Injectable()
 export class CloudflareAIService {
   private readonly logger = new Logger(CloudflareAIService.name);
-  private readonly accountId: string;
-  private readonly apiToken: string;
+  private readonly accountId: string | undefined;
+  private readonly apiToken: string | undefined;
   private readonly baseUrl: string;
 
   constructor(private configService: ConfigService) {
