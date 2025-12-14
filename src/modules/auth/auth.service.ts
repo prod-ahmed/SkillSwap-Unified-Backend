@@ -55,49 +55,66 @@ export class AuthService {
       });
 
       const payload = ticket.getPayload();
-      if (!payload) {
+      if (!payload || !payload.email) {
         throw new BadRequestException('Invalid Google token');
       }
 
-      const { email, given_name, family_name, picture, sub: googleId } = payload;
+      const { email, given_name, family_name, picture } = payload;
 
       // Check if user exists
-      let user = await this.usersService.findByEmail(email);
-      let isNewUser = false;
+      const existingUser = await this.usersService.findByEmail(email);
 
-      if (!user) {
-        // Create new user
-        isNewUser = true;
-        const createUserDto: CreateUserDto = {
-          email,
-          password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
-          firstName: given_name || 'User',
-          lastName: family_name || '',
-          role: 'user',
-          city: '',
-          referralCode: dto.referralCode,
+      if (existingUser) {
+        // Existing user - generate JWT
+        const jwtPayload = { userId: existingUser._id.toString(), role: existingUser.role };
+        const accessToken = this.jwtService.sign(jwtPayload);
+
+        return {
+          accessToken,
+          refreshToken: accessToken,
+          user: {
+            id: existingUser._id,
+            email: existingUser.email,
+            username: existingUser.username,
+            profileImageUrl: (existingUser as any).profileImageUrl || picture,
+          },
+          isNewUser: false,
         };
-
-        user = await this.usersService.createUser(createUserDto, picture);
       }
 
-      // Generate JWT
-      const jwtPayload = { userId: user._id.toString(), role: user.role };
+      // Create new user
+      const username = given_name && family_name 
+        ? `${given_name} ${family_name}`
+        : given_name || email.split('@')[0];
+
+      const createUserDto: CreateUserDto = {
+        username,
+        email: email,
+        password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
+        referralCode: dto.referralCode,
+      };
+
+      const newUser: any = await this.usersService.createUser(createUserDto, picture);
+      if (!newUser) {
+        throw new BadRequestException('Failed to create user');
+      }
+
+      // Generate JWT for new user
+      const jwtPayload = { userId: newUser._id.toString(), role: newUser.role };
       const accessToken = this.jwtService.sign(jwtPayload);
 
       return {
         accessToken,
-        refreshToken: accessToken, // In production, use separate refresh token
+        refreshToken: accessToken,
         user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profileImageUrl: user.profileImageUrl || picture,
+          id: newUser._id,
+          email: newUser.email,
+          username: newUser.username,
+          profileImageUrl: newUser.profileImageUrl || picture,
         },
-        isNewUser,
+        isNewUser: true,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new UnauthorizedException('Google authentication failed: ' + error.message);
     }
   }

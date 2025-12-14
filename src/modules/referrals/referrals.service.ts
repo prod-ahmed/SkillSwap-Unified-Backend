@@ -239,7 +239,7 @@ export class ReferralsService {
     }
 
     // Get inviter details
-    const inviter = await this.usersService.findById(referralCode.inviterId);
+    const inviter = await this.usersService.findById(referralCode.inviterId.toString());
     
     if (!inviter) {
       return {
@@ -253,11 +253,11 @@ export class ReferralsService {
       valid: true,
       code,
       inviter: {
-        id: inviter._id,
-        username: inviter.username || `${inviter.firstName} ${inviter.lastName}`,
-        firstName: inviter.firstName,
-        profileImageUrl: inviter.profileImageUrl,
-        skills: inviter.skills || [],
+        id: (inviter as any)._id,
+        username: (inviter as any).username || `User`,
+        firstName: (inviter as any).firstName || 'User',
+        profileImageUrl: (inviter as any).profileImageUrl,
+        skills: (inviter as any).skills || [],
       },
       bonus: {
         inviterPoints: 100,

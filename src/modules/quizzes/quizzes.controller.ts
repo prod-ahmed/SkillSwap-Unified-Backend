@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizResultDto } from './dto/create-quiz-result.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('quizzes')
 @UseGuards(JwtAuthGuard)

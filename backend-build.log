@@ -1,0 +1,103 @@
+
+> skillswap-unified-backend@0.0.1 build
+> nest build
+
+[96msrc/modules/auth/auth.service.ts[0m:[93m65[0m:[93m54[0m - [91merror[0m[90m TS2345: [0mArgument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+[7m65[0m       let user = await this.usersService.findByEmail(email);
+[7m  [0m [91m                                                     ~~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m72[0m:[93m11[0m - [91merror[0m[90m TS2322: [0mType 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+[7m72[0m           email,
+[7m  [0m [91m          ~~~~~[0m
+
+  [96msrc/modules/users/dto/create-user.dto.ts[0m:[93m13[0m:[93m3[0m
+    [7m13[0m   email: string;
+    [7m  [0m [96m  ~~~~~[0m
+    The expected type comes from property 'email' which is declared here on type 'CreateUserDto'
+[96msrc/modules/auth/auth.service.ts[0m:[93m81[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType 'User' is not assignable to type 'Document<unknown, {}, User, {}, {}> & User & { _id: ObjectId; } & { __v: number; }'.
+  Type 'User' is missing the following properties from type 'Document<unknown, {}, User, {}, {}>': _id, $assertPopulated, $clearModifiedPaths, $clone, and 51 more.
+
+[7m81[0m         user = await this.usersService.createUser(createUserDto, picture);
+[7m  [0m [91m        ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m85[0m:[93m36[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m85[0m       const jwtPayload = { userId: user._id.toString(), role: user.role };
+[7m  [0m [91m                                   ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m85[0m:[93m63[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m85[0m       const jwtPayload = { userId: user._id.toString(), role: user.role };
+[7m  [0m [91m                                                              ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m92[0m:[93m15[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m92[0m           id: user._id,
+[7m  [0m [91m              ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m93[0m:[93m18[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m93[0m           email: user.email,
+[7m  [0m [91m                 ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m94[0m:[93m22[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m94[0m           firstName: user.firstName,
+[7m  [0m [91m                     ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m94[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'firstName' does not exist on type 'Document<unknown, {}, User, {}, {}> & User & { _id: ObjectId; } & { __v: number; }'.
+
+[7m94[0m           firstName: user.firstName,
+[7m  [0m [91m                          ~~~~~~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m95[0m:[93m21[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m95[0m           lastName: user.lastName,
+[7m  [0m [91m                    ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m95[0m:[93m26[0m - [91merror[0m[90m TS2339: [0mProperty 'lastName' does not exist on type 'Document<unknown, {}, User, {}, {}> & User & { _id: ObjectId; } & { __v: number; }'.
+
+[7m95[0m           lastName: user.lastName,
+[7m  [0m [91m                         ~~~~~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m96[0m:[93m28[0m - [91merror[0m[90m TS18047: [0m'user' is possibly 'null'.
+
+[7m96[0m           profileImageUrl: user.profileImageUrl || picture,
+[7m  [0m [91m                           ~~~~[0m
+[96msrc/modules/auth/auth.service.ts[0m:[93m96[0m:[93m33[0m - [91merror[0m[90m TS2339: [0mProperty 'profileImageUrl' does not exist on type 'Document<unknown, {}, User, {}, {}> & User & { _id: ObjectId; } & { __v: number; }'.
+
+[7m96[0m           profileImageUrl: user.profileImageUrl || picture,
+[7m  [0m [91m                                ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/quizzes/quizzes.controller.ts[0m:[93m4[0m:[93m30[0m - [91merror[0m[90m TS2307: [0mCannot find module '../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+
+[7m4[0m import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+[7m [0m [91m                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/modules/quizzes/quizzes.service.ts[0m:[93m35[0m:[93m25[0m - [91merror[0m[90m TS2339: [0mProperty 'createdAt' does not exist on type 'Document<unknown, {}, QuizResultDocument, {}, {}> & QuizResult & Document<ObjectId, any, any, Record<string, any>, {}> & Required<...> & { ...; }'.
+
+[7m35[0m       createdAt: result.createdAt,
+[7m  [0m [91m                        ~~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m242[0m:[93m54[0m - [91merror[0m[90m TS2345: [0mArgument of type 'ObjectId' is not assignable to parameter of type 'string'.
+
+[7m242[0m     const inviter = await this.usersService.findById(referralCode.inviterId);
+[7m   [0m [91m                                                     ~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m256[0m:[93m21[0m - [91merror[0m[90m TS2339: [0mProperty '_id' does not exist on type 'User'.
+
+[7m256[0m         id: inviter._id,
+[7m   [0m [91m                    ~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m257[0m:[93m50[0m - [91merror[0m[90m TS2339: [0mProperty 'firstName' does not exist on type 'User'.
+
+[7m257[0m         username: inviter.username || `${inviter.firstName} ${inviter.lastName}`,
+[7m   [0m [91m                                                 ~~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m257[0m:[93m71[0m - [91merror[0m[90m TS2339: [0mProperty 'lastName' does not exist on type 'User'.
+
+[7m257[0m         username: inviter.username || `${inviter.firstName} ${inviter.lastName}`,
+[7m   [0m [91m                                                                      ~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m258[0m:[93m28[0m - [91merror[0m[90m TS2339: [0mProperty 'firstName' does not exist on type 'User'.
+
+[7m258[0m         firstName: inviter.firstName,
+[7m   [0m [91m                           ~~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m259[0m:[93m34[0m - [91merror[0m[90m TS2339: [0mProperty 'profileImageUrl' does not exist on type 'User'.
+
+[7m259[0m         profileImageUrl: inviter.profileImageUrl,
+[7m   [0m [91m                                 ~~~~~~~~~~~~~~~[0m
+[96msrc/modules/referrals/referrals.service.ts[0m:[93m260[0m:[93m25[0m - [91merror[0m[90m TS2339: [0mProperty 'skills' does not exist on type 'User'.
+
+[7m260[0m         skills: inviter.skills || [],
+[7m   [0m [91m                        ~~~~~~[0m
+
+Found 22 error(s).
+

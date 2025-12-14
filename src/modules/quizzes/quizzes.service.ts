@@ -32,7 +32,7 @@ export class QuizzesService {
       score: result.score,
       totalQuestions: result.totalQuestions,
       percentage: result.percentage,
-      createdAt: result.createdAt,
+      completedAt: result.completedAt,
     };
   }
 
