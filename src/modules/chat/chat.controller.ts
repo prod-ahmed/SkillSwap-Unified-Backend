@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/common/current-user.decorator';
@@ -7,6 +8,8 @@ import { CreateThreadDto } from './dto/create-thread.dto';
 import { ListMessagesQueryDto } from './dto/list-messages-query.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { MarkThreadReadDto } from './dto/mark-thread-read.dto';
+import { chatFileUpload } from './chat.upload';
+import { MessageType } from './message-type.enum';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -62,5 +65,28 @@ export class ChatController {
   @Delete('messages/:id')
   async deleteMessage(@CurrentUser() user, @Param('id') id: string) {
     return this.chatService.deleteMessage(user.userId, id);
+  }
+
+  @Post('threads/:threadId/upload')
+  @UseInterceptors(FileInterceptor('file', chatFileUpload))
+  async uploadAttachment(
+    @CurrentUser() user,
+    @Param('threadId') threadId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('content') content?: string,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Construct the attachment URL
+    const attachmentUrl = `/uploads/chat/${file.filename}`;
+
+    // Send the message with attachment
+    return this.chatService.sendMessage(user.userId, threadId, {
+      content: content || file.originalname,
+      type: MessageType.Attachment,
+      attachmentUrl,
+    });
   }
 }

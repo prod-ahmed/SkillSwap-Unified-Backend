@@ -9,14 +9,14 @@ import { Model, Types } from 'mongoose';
 import { LessonPlan, LessonPlanDocument } from './schemas/lesson-plan.schema';
 import { Session, SessionDocument } from '../sessions/entities/session.entity';
 import { NotificationsService } from '../notifications/notifications.service';
-import { GeminiService } from '../gemini/gemini.service';
+import { CloudflareAIService } from '../cloudflare-ai/cloudflare-ai.service';
 import { jsonrepair } from 'jsonrepair';
 
 /**
- * Interface for Gemini response
+ * Interface for AI response
  * The AI returns a structured JSON with lesson plan components
  */
-interface GeminiLessonPlanResponse {
+interface AILessonPlanResponse {
   plan: string | Record<string, unknown>;
   checklist: string[];
   resources: string[];
@@ -27,12 +27,12 @@ interface GeminiLessonPlanResponse {
  * Lesson Plan Service
  * 
  * This service handles:
- * 1. Generating AI-powered lesson plans using Gemini API
+ * 1. Generating AI-powered lesson plans using Cloudflare Workers AI
  * 2. Storing and retrieving lesson plans from database
  * 3. Updating progress tracking for checklist items
  * 4. Sending notifications when plans are generated
  * 
- * The service integrates with Gemini model to create
+ * The service integrates with Cloudflare AI to create
  * personalized lesson plans based on:
  * - Skill being taught
  * - Student's level (beginner/intermediate/advanced)
@@ -46,7 +46,7 @@ export class LessonPlanService {
   /**
    * Constructor
    * 
-   * Injects required services (notifications, Gemini generator, etc.)
+   * Injects required services (notifications, Cloudflare AI generator, etc.)
    */
   constructor(
     @InjectModel(LessonPlan.name)
@@ -54,15 +54,15 @@ export class LessonPlanService {
     @InjectModel(Session.name)
     private sessionModel: Model<SessionDocument>,
     private readonly notificationsService: NotificationsService,
-    private readonly geminiService: GeminiService,
+    private readonly cloudflareAIService: CloudflareAIService,
   ) { }
 
   /**
-   * Generate a lesson plan for a session using Gemini
+   * Generate a lesson plan for a session using Cloudflare AI
    * 
    * This method:
    * 1. Fetches session details (skill, duration, etc.)
-   * 2. Constructs a prompt for Gemini
+   * 2. Constructs a prompt for Cloudflare AI
    * 3. Calls Gemini API to generate the plan
    * 4. Saves the plan to database
    * 5. Sends notification to teacher and learner
@@ -118,7 +118,7 @@ export class LessonPlanService {
 
     try {
       // Call Gemini API
-      const aiResponse = await this.callGemini(prompt);
+      const aiResponse = await this.callCloudflareAI(prompt);
 
       const planText =
         typeof aiResponse.plan === 'string'
@@ -283,24 +283,27 @@ Make the content appropriate for a ${level} level student learning ${skill}. The
    * @param prompt - The prompt to send to Gemini
    * @returns Parsed lesson plan data from AI
    */
-  private async callGemini(
+  private async callCloudflareAI(
     prompt: string,
-  ): Promise<GeminiLessonPlanResponse> {
+  ): Promise<AILessonPlanResponse> {
     try {
-      const rawResponse = await this.geminiService.generateText(prompt);
+      const rawResponse = await this.cloudflareAIService.generateText(prompt, {
+        maxTokens: 2048,
+        temperature: 0.7,
+      });
 
       if (!rawResponse) {
-        throw new Error('No content received from Gemini');
+        throw new Error('No content received from Cloudflare AI');
       }
 
       // Parse JSON response
-      // Sometimes Gemini wraps JSON in markdown code blocks, so we clean it
+      // Sometimes AI wraps JSON in markdown code blocks, so we clean it
       const cleanedContent = rawResponse
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
         .trim();
 
-      let parsed: GeminiLessonPlanResponse;
+      let parsed: AILessonPlanResponse;
       try {
         parsed = JSON.parse(cleanedContent);
       } catch (primaryError) {
@@ -308,14 +311,14 @@ Make the content appropriate for a ${level} level student learning ${skill}. The
           const repaired = jsonrepair(cleanedContent);
           parsed = JSON.parse(repaired);
         } catch (repairError) {
-          this.logger.error('Failed to parse Gemini response', repairError);
-          throw new Error('Invalid JSON returned from Gemini');
+          this.logger.error('Failed to parse AI response', repairError);
+          throw new Error('Invalid JSON returned from AI');
         }
       }
 
       // Validate response structure
       if (!parsed.plan || !Array.isArray(parsed.checklist)) {
-        throw new Error('Invalid response structure from Gemini');
+        throw new Error('Invalid response structure from AI');
       }
 
       if (typeof parsed.plan !== 'string') {
@@ -329,10 +332,10 @@ Make the content appropriate for a ${level} level student learning ${skill}. The
         : [];
       parsed.homework = typeof parsed.homework === 'string' ? parsed.homework : '';
 
-      this.logger.log('Successfully generated lesson plan from Gemini');
+      this.logger.log('Successfully generated lesson plan from Cloudflare AI');
       return parsed;
     } catch (error) {
-      this.logger.error('Gemini API call failed', error);
+      this.logger.error('Cloudflare AI call failed', error);
       if (error instanceof BadRequestException) {
         throw error;
       }
