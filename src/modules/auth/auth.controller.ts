@@ -53,4 +53,10 @@ export class AuthController {
   refresh(@CurrentUser() user) {
     return this.authService.refreshToken(user);
   }
+
+  // 4️⃣ Google OAuth
+  @Post('google')
+  googleAuth(@Body() dto: import('./dto/google-auth.dto').GoogleAuthDto) {
+    return this.authService.authenticateWithGoogle(dto);
+  }
 }

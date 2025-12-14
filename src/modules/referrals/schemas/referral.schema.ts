@@ -35,6 +35,3 @@ export class Referral extends Document {
 }
 
 export const ReferralSchema = SchemaFactory.createForClass(Referral);
-ReferralSchema.index({ inviteeId: 1 }, { unique: true });
-ReferralSchema.index({ codeId: 1 });
-ReferralSchema.index({ inviterId: 1 });

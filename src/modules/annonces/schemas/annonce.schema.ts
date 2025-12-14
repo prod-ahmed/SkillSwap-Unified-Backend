@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type AnnonceDocument = Annonce & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, suppressReservedKeysWarning: true })
 export class Annonce {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;            // 🔥 FK vers User

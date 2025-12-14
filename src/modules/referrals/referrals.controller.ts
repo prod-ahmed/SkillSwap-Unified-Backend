@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards, Param } from '@nestjs/common';
 import { ReferralsService } from './referrals.service';
 import { CreateReferralCodeDto } from './dto/create-referral-code.dto';
 import { RedeemReferralDto } from './dto/redeem-referral.dto';
@@ -24,6 +24,11 @@ export class ReferralsController {
   async getMine(@Req() req: any) {
     const userId = req.user?.sub || req.user?.userId;
     return this.referralsService.getReferralsForUser(userId);
+  }
+
+  @Get('validate/:code')
+  async validateCode(@Param('code') code: string) {
+    return this.referralsService.validateAndGetInviter(code);
   }
 
   @Post('redeem')

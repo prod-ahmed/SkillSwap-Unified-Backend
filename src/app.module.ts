@@ -22,6 +22,7 @@ import { MatchingModule } from './modules/matching/matching.module';
 import { GeminiModule } from './modules/gemini/gemini.module';
 import { GoogleModule } from './modules/google/google.module';
 import { LessonPlanModule } from './modules/lesson-plan/lesson-plan.module';
+import { QuizzesModule } from './modules/quizzes/quizzes.module';
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { LessonPlanModule } from './modules/lesson-plan/lesson-plan.module';
         GeminiModule,
         GoogleModule,
         LessonPlanModule,
+        QuizzesModule,
     ],
 })
 export class AppModule { }

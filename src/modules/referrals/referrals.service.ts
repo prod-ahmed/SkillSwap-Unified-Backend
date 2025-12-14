@@ -208,4 +208,61 @@ export class ReferralsService {
       throw err;
     }
   }
+
+  async validateAndGetInviter(code: string) {
+    const referralCode = await this.codeModel.findOne({ code }).lean();
+    
+    if (!referralCode) {
+      return {
+        valid: false,
+        code,
+        error: 'Referral code not found',
+      };
+    }
+
+    // Check if expired
+    if (referralCode.expiresAt && new Date(referralCode.expiresAt) < new Date()) {
+      return {
+        valid: false,
+        code,
+        error: 'Referral code has expired',
+      };
+    }
+
+    // Check usage limit
+    if (referralCode.usageLimit > 0 && referralCode.remainingUses <= 0) {
+      return {
+        valid: false,
+        code,
+        error: 'Referral code usage limit reached',
+      };
+    }
+
+    // Get inviter details
+    const inviter = await this.usersService.findById(referralCode.inviterId);
+    
+    if (!inviter) {
+      return {
+        valid: false,
+        code,
+        error: 'Inviter not found',
+      };
+    }
+
+    return {
+      valid: true,
+      code,
+      inviter: {
+        id: inviter._id,
+        username: inviter.username || `${inviter.firstName} ${inviter.lastName}`,
+        firstName: inviter.firstName,
+        profileImageUrl: inviter.profileImageUrl,
+        skills: inviter.skills || [],
+      },
+      bonus: {
+        inviterPoints: 100,
+        inviteePoints: 50,
+      },
+    };
+  }
 }

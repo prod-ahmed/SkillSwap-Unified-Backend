@@ -24,4 +24,3 @@ export class ReferralReward extends Document {
 
 export const ReferralRewardSchema = SchemaFactory.createForClass(ReferralReward);
 ReferralRewardSchema.index({ referralId: 1 });
-ReferralRewardSchema.index({ userId: 1 });
