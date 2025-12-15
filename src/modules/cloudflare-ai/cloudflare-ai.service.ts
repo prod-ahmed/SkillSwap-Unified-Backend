@@ -51,10 +51,11 @@ export class CloudflareAIService {
     
     messages.push({ role: 'user', content: prompt });
 
-    const modelUrl = `${this.baseUrl}/@cf/openchat/openchat-3.5-0106`;
+    // Updated to use Llama 3.1 instead of deprecated openchat model
+    const modelUrl = `${this.baseUrl}/@cf/meta/llama-3.1-8b-instruct`;
 
     try {
-      this.logger.log(`Calling Cloudflare AI`);
+      this.logger.log(`Calling Cloudflare AI with Llama 3.1`);
       
       const response = await fetch(modelUrl, {
         method: 'POST',

@@ -1,13 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { GeminiService } from './gemini.service';
-import { GeminiController } from './gemini.controller';
+import { AIController } from './gemini.controller';
+import { CloudflareAIModule } from '../cloudflare-ai/cloudflare-ai.module';
 
 @Module({
-  imports: [ConfigModule],
-  providers: [GeminiService],
-  controllers: [GeminiController],
-  exports: [GeminiService],
+  imports: [CloudflareAIModule],
+  controllers: [AIController],
 })
-export class GeminiModule {}
-
+export class AIModule { }

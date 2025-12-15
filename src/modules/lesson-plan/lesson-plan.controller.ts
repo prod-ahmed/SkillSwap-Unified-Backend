@@ -9,7 +9,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LessonPlanService } from './lesson-plan.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -73,6 +73,9 @@ export class LessonPlanController {
     @Body() dto: GenerateLessonPlanDto,
     @CurrentUser() user: any,
   ) {
+    // Validate sessionId format
+    this.validateObjectId(sessionId, 'sessionId');
+
     // Verify user has access to this session
     await this.verifySessionAccess(sessionId, user.userId);
 
@@ -110,6 +113,9 @@ export class LessonPlanController {
     @Body() dto: GenerateLessonPlanDto,
     @CurrentUser() user: any,
   ) {
+    // Validate sessionId format
+    this.validateObjectId(sessionId, 'sessionId');
+
     // Verify user has access
     await this.verifySessionAccess(sessionId, user.userId);
 
@@ -149,6 +155,9 @@ export class LessonPlanController {
     @Param('sessionId') sessionId: string,
     @CurrentUser() user: any,
   ) {
+    // Validate sessionId format
+    this.validateObjectId(sessionId, 'sessionId');
+
     // Verify user has access
     await this.verifySessionAccess(sessionId, user.userId);
 
@@ -189,6 +198,9 @@ export class LessonPlanController {
     @Body() dto: UpdateProgressDto,
     @CurrentUser() user: any,
   ) {
+    // Validate sessionId format
+    this.validateObjectId(sessionId, 'sessionId');
+
     // Verify user has access
     await this.verifySessionAccess(sessionId, user.userId);
 
@@ -203,6 +215,21 @@ export class LessonPlanController {
       message: 'Progression mise à jour avec succès',
       data: plan,
     };
+  }
+
+  /**
+   * Validate that a string is a valid MongoDB ObjectId
+   * 
+   * @param id - The ID to validate
+   * @param fieldName - Name of the field for error message
+   * @throws BadRequestException if invalid
+   */
+  private validateObjectId(id: string, fieldName: string = 'ID'): void {
+    if (!id || !Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(
+        `Invalid ${fieldName}: must be a valid 24-character hex string`,
+      );
+    }
   }
 
   /**

@@ -77,6 +77,13 @@ export class LessonPlanService {
     level: string = 'beginner',
     goal?: string,
   ): Promise<LessonPlanDocument> {
+    // Validate sessionId format
+    if (!sessionId || !Types.ObjectId.isValid(sessionId)) {
+      throw new BadRequestException(
+        `Invalid sessionId: must be a valid 24-character hex string`,
+      );
+    }
+
     // Fetch session details
     const session = await this.sessionModel
       .findById(sessionId)
@@ -172,6 +179,13 @@ export class LessonPlanService {
     level?: string,
     goal?: string,
   ): Promise<LessonPlanDocument> {
+    // Validate sessionId format
+    if (!sessionId || !Types.ObjectId.isValid(sessionId)) {
+      throw new BadRequestException(
+        `Invalid sessionId: must be a valid 24-character hex string`,
+      );
+    }
+
     // Delete existing plan if it exists
     await this.lessonPlanModel.deleteOne({
       sessionId: new Types.ObjectId(sessionId),
@@ -188,6 +202,13 @@ export class LessonPlanService {
    * @returns The lesson plan document or null if not found
    */
   async getLessonPlan(sessionId: string): Promise<LessonPlanDocument | null> {
+    // Validate sessionId format
+    if (!sessionId || !Types.ObjectId.isValid(sessionId)) {
+      throw new BadRequestException(
+        `Invalid sessionId: must be a valid 24-character hex string`,
+      );
+    }
+
     const plan = await this.lessonPlanModel
       .findOne({
         sessionId: new Types.ObjectId(sessionId),
@@ -213,6 +234,20 @@ export class LessonPlanService {
     checklistIndex: number,
     completed: boolean,
   ): Promise<LessonPlanDocument> {
+    // Validate sessionId format
+    if (!sessionId || !Types.ObjectId.isValid(sessionId)) {
+      throw new BadRequestException(
+        `Invalid sessionId: must be a valid 24-character hex string`,
+      );
+    }
+
+    // Validate checklistIndex
+    if (checklistIndex === undefined || checklistIndex === null || typeof checklistIndex !== 'number') {
+      throw new BadRequestException(
+        `Invalid checklistIndex: must be a number`,
+      );
+    }
+
     const plan = await this.lessonPlanModel.findOne({
       sessionId: new Types.ObjectId(sessionId),
     });
@@ -235,7 +270,13 @@ export class LessonPlanService {
       `Updated progress for session ${sessionId}, item ${checklistIndex}: ${completed}`,
     );
 
-    return updated;
+    // Convert to plain object with progress as a regular object (not Map)
+    const result = updated.toObject() as any;
+    if (result.progress instanceof Map) {
+      result.progress = Object.fromEntries(result.progress);
+    }
+
+    return result;
   }
 
   /**
@@ -256,22 +297,22 @@ export class LessonPlanService {
     duration: number,
     goal: string,
   ): string {
-    return `You are an expert educational content creator. Generate a structured lesson plan for a learning session.
+    return `Generate a lesson plan in JSON format.
 
 Skill: ${skill}
 Level: ${level}
 Duration: ${duration} minutes
 Goal: ${goal}
 
-Return a JSON object with the following structure:
+Return ONLY a valid JSON object (no other text) with this exact structure:
 {
-  "plan": "A single multi-line text string describing the lesson plan with headings (Warm-up, Main learning blocks, Practice, Summary). Do NOT return objects for this field.",
-  "checklist": ["List of 3-5 learning objectives that can be checked off", "Each objective should be specific and measurable"],
-  "resources": ["List of 2-4 recommended resources (YouTube videos, PDFs, articles, practice apps)", "Include actual URLs if possible, or describe the resource"],
-  "homework": "Small exercises and recap of what was learned, plus next recommended steps for continued practice"
+  "plan": "Detailed lesson plan text here including: Warm-up (5 min), Main Content (${Math.floor(duration * 0.6)} min), Practice (${Math.floor(duration * 0.25)} min), Summary (${Math.floor(duration * 0.1)} min)",
+  "checklist": ["Learning objective 1", "Learning objective 2", "Learning objective 3"],
+  "resources": ["Resource 1 description", "Resource 2 description"],
+  "homework": "Homework assignment description"
 }
 
-Make the content appropriate for a ${level} level student learning ${skill}. The lesson should be practical and engaging.`;
+Important: Output ONLY the JSON object, no markdown, no explanations.`;
   }
 
   /**
@@ -296,29 +337,48 @@ Make the content appropriate for a ${level} level student learning ${skill}. The
         throw new Error('No content received from Cloudflare AI');
       }
 
+      this.logger.log(`Raw AI response (first 500 chars): ${rawResponse.substring(0, 500)}`);
+
       // Parse JSON response
       // Sometimes AI wraps JSON in markdown code blocks, so we clean it
-      const cleanedContent = rawResponse
+      let cleanedContent = rawResponse
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
         .trim();
+
+      // Try to extract JSON from the response if it's mixed with text
+      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedContent = jsonMatch[0];
+      }
 
       let parsed: AILessonPlanResponse;
       try {
         parsed = JSON.parse(cleanedContent);
       } catch (primaryError) {
+        this.logger.warn(`Primary JSON parse failed, attempting repair. Content: ${cleanedContent.substring(0, 300)}`);
         try {
           const repaired = jsonrepair(cleanedContent);
           parsed = JSON.parse(repaired);
         } catch (repairError) {
-          this.logger.error('Failed to parse AI response', repairError);
-          throw new Error('Invalid JSON returned from AI');
+          this.logger.error('Failed to parse AI response after repair attempt');
+          // Create a fallback response from the raw text
+          parsed = {
+            plan: rawResponse,
+            checklist: ['Review the lesson content', 'Practice exercises', 'Ask questions'],
+            resources: [],
+            homework: 'Review what was learned today',
+          };
+          this.logger.warn('Using fallback lesson plan structure');
         }
       }
 
-      // Validate response structure
-      if (!parsed.plan || !Array.isArray(parsed.checklist)) {
-        throw new Error('Invalid response structure from AI');
+      // Validate and fix response structure
+      if (!parsed.plan) {
+        parsed.plan = rawResponse; // Use raw response as plan if not provided
+      }
+      if (!Array.isArray(parsed.checklist)) {
+        parsed.checklist = ['Complete the lesson', 'Practice exercises', 'Review materials'];
       }
 
       if (typeof parsed.plan !== 'string') {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDefined, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 /**
  * DTO for generating a lesson plan
@@ -48,6 +48,8 @@ export class UpdateProgressDto {
     description: 'Index of the checklist item',
     example: 0,
   })
+  @IsNumber()
+  @IsDefined()
   checklistIndex: number;
 
   /**
@@ -57,6 +59,8 @@ export class UpdateProgressDto {
     description: 'Whether the checklist item is completed',
     example: true,
   })
+  @IsBoolean()
+  @IsDefined()
   completed: boolean;
 }
 

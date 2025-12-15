@@ -19,7 +19,7 @@ import { ModerationModule } from './modules/moderation/moderation.module';
 import { MatchingModule } from './modules/matching/matching.module';
 
 // Secondary Modules (New)
-import { GeminiModule } from './modules/gemini/gemini.module';
+import { AIModule } from './modules/gemini/gemini.module';
 import { GoogleModule } from './modules/google/google.module';
 import { LessonPlanModule } from './modules/lesson-plan/lesson-plan.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
@@ -53,7 +53,7 @@ import { QuizzesModule } from './modules/quizzes/quizzes.module';
         MatchingModule,
 
         // New Features
-        GeminiModule,
+        AIModule,
         GoogleModule,
         LessonPlanModule,
         QuizzesModule,

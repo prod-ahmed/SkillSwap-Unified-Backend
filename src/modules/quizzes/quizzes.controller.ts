@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Param, Query } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizResultDto } from './dto/create-quiz-result.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -7,6 +7,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
+
+  @Post('generate')
+  async generateQuiz(
+    @Body('skill') skill: string,
+    @Body('level') level: string,
+    @Body('numberOfQuestions') numberOfQuestions?: number,
+  ) {
+    return this.quizzesService.generateQuiz(
+      skill,
+      level,
+      numberOfQuestions || 5,
+    );
+  }
 
   @Post('results')
   async saveResult(@Body() dto: CreateQuizResultDto, @Request() req) {

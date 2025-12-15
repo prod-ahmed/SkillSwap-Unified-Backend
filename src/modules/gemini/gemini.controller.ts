@@ -1,26 +1,23 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { GeminiService } from './gemini.service';
+import { CloudflareAIService } from '../cloudflare-ai/cloudflare-ai.service';
 
 /**
- * Basic controller exposing Gemini text generation endpoint.
- * Useful for testing prompts from clients (e.g., Android app).
+ * AI controller using Cloudflare Workers AI for text and image generation.
  */
 @Controller('ai')
-export class GeminiController {
-  constructor(private readonly geminiService: GeminiService) {}
+export class AIController {
+  constructor(private readonly cloudflareService: CloudflareAIService) { }
 
   @Post('generate')
   async generate(@Body('prompt') prompt: string) {
     return {
-      data: await this.geminiService.generateText(prompt),
+      data: await this.cloudflareService.generateText(prompt),
     };
   }
 
-  @Post('generate-image')
-  async generateImage(@Body('prompt') prompt: string) {
-    return {
-      url: await this.geminiService.generateImage(prompt),
-    };
+  @Post('chat')
+  async chat(@Body('message') message: string) {
+    const response = await this.cloudflareService.generateText(message);
+    return { response };
   }
 }
-

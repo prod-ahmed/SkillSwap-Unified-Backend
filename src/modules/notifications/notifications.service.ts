@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
 import { Notification, NotificationDocument } from './schemas/notification.schema';
@@ -22,6 +22,8 @@ export interface CreateNotificationInput {
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     @InjectModel(Notification.name)
     private readonly notificationModel: Model<NotificationDocument>,
@@ -30,6 +32,18 @@ export class NotificationsService {
   ) { }
 
   async createNotification(input: CreateNotificationInput) {
+    // Validate userId format
+    if (!input.userId || !Types.ObjectId.isValid(input.userId)) {
+      this.logger.warn(`Invalid userId for notification: ${input.userId}`);
+      return null; // Skip notification instead of throwing
+    }
+
+    // Validate sessionId format if provided
+    if (input.sessionId && !Types.ObjectId.isValid(input.sessionId)) {
+      this.logger.warn(`Invalid sessionId for notification: ${input.sessionId}`);
+      input.sessionId = undefined; // Clear invalid sessionId
+    }
+
     const doc = new this.notificationModel({
       user: new Types.ObjectId(input.userId),
       type: input.type,
