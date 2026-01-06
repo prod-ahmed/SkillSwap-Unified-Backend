@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import fetch from 'node-fetch';
 
 @Injectable()
 export class LocationsService implements OnModuleInit {
