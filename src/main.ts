@@ -48,8 +48,8 @@ async function bootstrap() {
         },
     });
 
-    await app.listen(3000, '0.0.0.0');
-    console.log('🚀 Unified Server running on http://localhost:3000');
-    console.log('📘 Swagger docs available on http://localhost:3000/api');
+    await app.listen(3001, '0.0.0.0');
+    console.log('🚀 Unified Server running on http://localhost:3001');
+    console.log('📘 Swagger docs available on http://localhost:3001/api');
 }
 bootstrap();
