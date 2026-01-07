@@ -8,6 +8,7 @@ import { MarkNotificationsReadDto } from './dto/mark-read.dto';
 import { RespondNotificationDto } from './dto/respond-notification.dto';
 import { SessionsService } from '../sessions/sessions.service';
 import { UpdateSessionDto } from '../sessions/dto/update-session.dto';
+import { NotificationsGateway } from './notifications.gateway';
 
 export interface CreateNotificationInput {
   userId: string | Types.ObjectId;
@@ -29,6 +30,7 @@ export class NotificationsService {
     private readonly notificationModel: Model<NotificationDocument>,
     @Inject(forwardRef(() => SessionsService))
     private readonly sessionsService: SessionsService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) { }
 
   async createNotification(input: CreateNotificationInput) {
@@ -54,7 +56,21 @@ export class NotificationsService {
       meetingUrl: input.meetingUrl,
       actionable: input.actionable ?? false,
     });
-    return doc.save();
+    const saved = await doc.save();
+    
+    // Push notification via WebSocket
+    this.notificationsGateway.pushToUser(input.userId.toString(), {
+      id: saved._id.toString(),
+      type: input.type,
+      title: input.title,
+      message: input.message,
+      payload: input.payload,
+      sessionId: input.sessionId?.toString(),
+      actionable: input.actionable,
+      createdAt: saved.createdAt,
+    });
+    
+    return saved;
   }
 
   async sendNotification(input: CreateNotificationInput) {
