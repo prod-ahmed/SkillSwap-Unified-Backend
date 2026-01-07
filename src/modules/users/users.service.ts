@@ -189,6 +189,7 @@ export class UsersService {
       'username',
       'email',
       'bio',
+      'age',
       'skillsTeach',
       'skillsLearn',
     ];

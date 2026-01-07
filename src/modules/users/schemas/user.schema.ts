@@ -19,6 +19,9 @@ export class User {
   @Prop()
   bio: string;
 
+  @Prop({ type: Number })
+  age: number;
+
   @Prop({ type: String, enum: Object.values(Role), default: Role.Client })
   role: Role;
 

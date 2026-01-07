@@ -54,6 +54,12 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   bio?: string;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  age?: number;
+
   @ApiProperty({ required: false, type: () => LocationDto })
   @IsOptional()
   @ValidateNested()
